@@ -9,4 +9,3 @@ undetected-chromedriver
 feedparser
 fastapi
 uvicorn
-distutils
