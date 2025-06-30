@@ -1,0 +1,11 @@
+requests
+pandas
+python-dotenv
+openai
+tweepy
+selenium
+beautifulsoup4
+undetected-chromedriver
+feedparser
+fastapi
+uvicorn 
