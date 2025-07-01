@@ -31,16 +31,16 @@ class HomepageScraperSource(BaseSource):
             #     "url": "https://aninews.in/",
             #     "parser": self.parse_aninews
             # },
+            # {
+            #     "name": "CNBC World",
+            #     "url": "https://www.cnbc.com/world/",
+            #     "parser": self.parse_cnbc_world
+            # },
             {
                 "name": "CNBC India",
                 "url": "https://www.cnbc.com/india/",
                 "parser": self.parse_cnbc_india
             },
-            {
-                "name": "CNBC World",
-                "url": "https://www.cnbc.com/world/",
-                "parser": self.parse_cnbc_world
-            }
         ]
         # Set up logging
         if not os.path.exists('logs'):
