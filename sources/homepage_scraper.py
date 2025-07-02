@@ -115,7 +115,9 @@ class HomepageScraperSource(BaseSource):
         #     ...
         # Instead, use RSS feeds
         all_headlines.extend(self.fetch_cnbc_rss_india())
-        all_headlines.extend(self.fetch_cnbc_rss_world())
+        all_headlines.extend(self.fetch_business_standard_rss())
+        all_headlines.extend(self.fetch_livemint_companies_rss())
+        all_headlines.extend(self.fetch_livemint_money_rss())
         return all_headlines
 
     def get_last_updated(self, url):
@@ -130,42 +132,6 @@ class HomepageScraperSource(BaseSource):
         except Exception as e:
             logging.warning(f"Could not fetch last updated date for {url}: {e}")
         return None
-
-    def parse_reuters(self, soup):
-        # Reuters: headlines are in <a data-testid="Heading" ...>
-        headlines = []
-        for a in soup.find_all("a", attrs={"data-testid": "TitleLink"}):
-            title = a.get_text(strip=True)
-            url = a.get("href")
-            if url and not url.startswith("http"):
-                url = "https://www.reuters.com" + url
-            if title and url:
-                headlines.append({"title": title, "url": url})
-        return headlines
-
-    def parse_apnews(self, soup):
-        # AP News: headlines are in <a class="Component-headline-...">
-        headlines = []
-        for a in soup.find_all("a", class_=lambda x: x and x.startswith("Component-headline-")):
-            title = a.get_text(strip=True)
-            url = a.get("href")
-            if url and not url.startswith("http"):
-                url = "https://apnews.com" + url
-            if title and url:
-                headlines.append({"title": title, "url": url})
-        return headlines
-
-    def parse_aninews(self, soup):
-        # ANI News: headlines are in <a class="news-title" ...>
-        headlines = []
-        for a in soup.find_all("a", class_="news-title"):
-            title = a.get_text(strip=True)
-            url = a.get("href")
-            if url and not url.startswith("http"):
-                url = "https://aninews.in" + url
-            if title and url:
-                headlines.append({"title": title, "url": url})
-        return headlines
 
     def parse_cnbc_india(self, soup):
         articles = []
@@ -185,22 +151,40 @@ class HomepageScraperSource(BaseSource):
                 articles.append({"title": title, "url": url, "last_updated": last_updated})
         return articles
 
-    def parse_cnbc_world(self, soup):
+    def fetch_business_standard_rss(self):
+        url = "https://www.business-standard.com/rss/latest.rss"
+        feed = feedparser.parse(url)
         articles = []
-        for a in soup.find_all("a", href=True):
-            url = a["href"]
-            if re.search(r"/20\d{2}/\d{2}/\d{2}/", url):
-                title = a.get_text(strip=True)
-                if not title:
-                    continue
-                try:
-                    import requests
-                    resp = requests.get(url if url.startswith("http") else f"https://www.cnbc.com{url}")
-                    article_soup = BeautifulSoup(resp.text, "html.parser")
-                except Exception:
-                    article_soup = None
-                last_updated = self.extract_date_from_url(url, article_soup)
-                articles.append({"title": title, "url": url, "last_updated": last_updated})
+        for entry in feed.entries:
+            articles.append({
+                "title": entry.get("title"),
+                "url": entry.get("link"),
+                "last_updated": entry.get("published") or entry.get("updated")
+            })
+        return articles
+
+    def fetch_livemint_companies_rss(self):
+        url = "https://www.livemint.com/rss/companies"
+        feed = feedparser.parse(url)
+        articles = []
+        for entry in feed.entries:
+            articles.append({
+                "title": entry.get("title"),
+                "url": entry.get("link"),
+                "last_updated": entry.get("published") or entry.get("updated")
+            })
+        return articles
+
+    def fetch_livemint_money_rss(self):
+        url = "https://www.livemint.com/rss/money"
+        feed = feedparser.parse(url)
+        articles = []
+        for entry in feed.entries:
+            articles.append({
+                "title": entry.get("title"),
+                "url": entry.get("link"),
+                "last_updated": entry.get("published") or entry.get("updated")
+            })
         return articles
 
     def test_proxy(self):
